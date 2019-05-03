@@ -208,7 +208,7 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
 {
     static uint64_t note_idx, time_idx;
     static bool print_flag = true;
-    short   data;   
+    short   data;
 
     (void)userdata;
     (void)len;
@@ -222,7 +222,7 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
 
     if (!notedata[note_idx].name)
         done = true;
-    
+
     if (done)
         return ;
 
@@ -291,7 +291,7 @@ double get_note_duration(char *token)
     if (dur & (dur - 1))    //must be power of 2
         is_parse_error = true;
     result = 60.0 / (double)beats * 4.0 / dur;
-    if (token[strlen(token) - 1] == '.')
+    if (strchr(token, '.'))
         result *= 1.5;
     return result ;
 }
@@ -304,8 +304,12 @@ char *get_note_name(char *token, char *buf)
         i++;
     if (strlen(&token[i]) > 4) /*   a#4.  */
         is_parse_error = true;
-    while ((j < 3) && (token[i]) && strchr(valid_chars, token[i]))
-        buf[j++] = token[i++];
+    while ((j < 3) && (token[i]))
+    {
+        if (strchr(valid_chars, token[i]))
+            buf[j++] = token[i];
+        i++;
+    }
     if (!j)
         is_parse_error = true;
     if (!isdigit(buf[j - 1]))
@@ -371,8 +375,8 @@ void    parse(int argc, char **argv)
         if (!s) break ;
         memset(buf, 0, 8);
         (void)get_note_name(s, buf);
-        notedata[k].frequency = get_note_freq(buf);
         notedata[k].duration = get_note_duration(s);
+        notedata[k].frequency = get_note_freq(buf);
         notedata[k].name = get_note_name_ptr(buf);
         k++;
         if (is_parse_error) {
