@@ -193,6 +193,9 @@ static int  beats = 100;
 static bool is_parse_error = false;
 static bool done = false;
 
+short (*wave_gen)(double time, double freq, double amp);
+
+
 /* https://www.youtube.com/watch?v=5xd9BMxoXqo */
 short SineWave(double time, double freq, double amp) {
     short result;
@@ -201,6 +204,18 @@ short SineWave(double time, double freq, double amp) {
     double rad = M_PI * 2 * cycles;
     short amplitude = 32767 * amp;
     result = amplitude * sin(rad);
+    return result;
+}
+
+short SquareWave(double time, double freq, double amp) {
+    short result = 0;
+    int tpc = sampling_frequency / freq; // ticks per cycle
+    int cyclepart = (int)time % tpc;
+    int halfcycle = tpc / 2;
+    short amplitude = 32767 * amp;
+    if (cyclepart < halfcycle) {
+        result = amplitude;
+    }
     return result;
 }
 
@@ -226,7 +241,7 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
     if (done)
         return ;
 
-   data = SineWave(time_idx++, notedata[note_idx].frequency, 1.0);
+   data = wave_gen(time_idx++, notedata[note_idx].frequency, 1.0);
    stream[0] = data & 0xff;
    stream[1] = (data >> 8) & 0xff;
 
@@ -324,6 +339,8 @@ void quit_msg(char *s)
     exit(EXIT_FAILURE);
 }
 
+#define usage_msg "usage: rattle [--sine] [--square] 'ring_tone_text_string'"
+
 void    parse(int argc, char **argv)
 {
     char *s, *name, *defaults, *data;
@@ -331,14 +348,26 @@ void    parse(int argc, char **argv)
     char delim2[] = ",";
     int k;
 
-    if (argc != 2)
-        return quit_msg("usage: rattle 'ring_tone_text_string'");
-    s = strchr(str_trim(argv[1]), ':');
+    if (argc < 2)
+        return quit_msg(usage_msg);
+
+    wave_gen = &SineWave;
+    if (argc == 3)
+    {
+        if (!strcmp(argv[1], "--sine"))
+            wave_gen = &SineWave;
+        else if (!strcmp(argv[1], "--square"))
+            wave_gen = &SquareWave;
+        else
+            return quit_msg(usage_msg);
+    }
+
+    s = strchr(str_trim(argv[argc - 1]), ':');
     if (!s)
         return quit_msg("parse error");
     for (int i = 0; s[i]; i++)
         s[i] = (char)tolower(s[i]);
-    s = argv[1];
+    s = argv[argc - 1];
     name = strtok(s, delim1);
     defaults = strtok(NULL, delim1);
     data = strtok(NULL, delim1);
