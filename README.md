@@ -1,3 +1,17 @@
+# rattle
+
+simple rtttl player i wrote while learning about sound wave generation
+
+### building:
+
+`brew install sdl2`
+`make`
+
+### usage:
+
+`./rattle [--sine] [--square] [--sawtooth] [--triangle] <rtttl_string>`
+
+
 ```
 e1z3r3p20% ./rattle Zelda64:d=4,o=6,b=200:2a#5,2f5,2p,8a#5,8c,8d,8d#,2f,2p,f,f,8f#,8g#,2a#,2p,a#,8a#,8p,8g#,8f#,g#,8f#,2f,2p,2f,d#,8d#,8f,2f#,2p,f,d#,c#,8c#,8d#,2f,2p,d#,c#,c,8c,8d,2e,2p,2g,1f
     name: Zelda64

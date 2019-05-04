@@ -227,6 +227,18 @@ short SawtoothWave(double time, double freq, double amp) {
     return result;
 }
 
+short TriangleWave(double time, double freq, double amp) {
+    int tpc = sampling_frequency / freq; // ticks per cycle
+    double cyclepart = fmod(time, tpc);
+    double halfcycle = tpc / 2;
+    double percent;
+    percent = cyclepart / halfcycle;
+    if (cyclepart >= halfcycle)
+        percent = 2.0 - percent;
+    short result = 32767 * amp * percent;
+    return result;
+}
+
 void MyAudioCallback(void *userdata, Uint8 *stream, int len)
 {
     static uint64_t note_idx, time_idx;
@@ -368,6 +380,8 @@ void    parse(int argc, char **argv)
             wave_gen = &SquareWave;        
         else if (!strcmp(argv[1], "--sawtooth"))
             wave_gen = &SawtoothWave;
+        else if (!strcmp(argv[1], "--triangle"))
+            wave_gen = &TriangleWave;
         else
             return quit_msg(usage_msg);
     }
