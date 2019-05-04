@@ -226,7 +226,7 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
     if (done)
         return ;
 
-   data = SineWave(time_idx++, notedata[note_idx].frequency, 0.5);
+   data = SineWave(time_idx++, notedata[note_idx].frequency, 1.0);
    stream[0] = data & 0xff;
    stream[1] = (data >> 8) & 0xff;
 
@@ -378,12 +378,15 @@ void    parse(int argc, char **argv)
         notedata[k].duration = get_note_duration(s);
         notedata[k].frequency = get_note_freq(buf);
         notedata[k].name = get_note_name_ptr(buf);
-        k++;
-        if (is_parse_error) {
+        if (is_parse_error)
+        {
+            printf("token: %s,  note name: %.5s,\tfrequency: %7.2f Hz,\tduration %2.4f s\n",
+                s, notedata[k].name, notedata[k].frequency, notedata[k].duration);
             free(notedata);
             return quit_msg("parse error");
         }
         s = strtok(NULL, delim2);
+        k++;
     }
 }
 
