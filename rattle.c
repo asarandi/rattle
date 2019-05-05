@@ -175,7 +175,11 @@ t_note  notes[] = {
 };
 
 #define num_notes 153
+
+#define num_samples 4096
 #define sampling_frequency  44100
+
+#define usage_msg "usage: rattle [--sine | --square | --sawtooth | --triangle] 'ring_tone_text_string'"
 
 typedef struct s_notedata {
     char    *name;
@@ -243,7 +247,7 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
 {
     static uint64_t note_idx, time_idx;
     static bool print_flag = true;
-    short   data;
+    int16_t   data;
 
     (void)userdata;
     (void)len;
@@ -261,15 +265,17 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
     if (done)
         return ;
 
-   data = wave_gen(time_idx++, notedata[note_idx].frequency, 1.0);
-   *(int16_t *)&stream[0] = data;
-   *(int16_t *)&stream[2] = data;
+    for (int i = 0; i < num_samples; i++) {
+        data = wave_gen(time_idx++, notedata[note_idx].frequency, 1.0);
+        *(int16_t *)&stream[i * 4] = data;
+        *(int16_t *)&stream[i * 4 + 2] = data;
+    }
 
-   if (print_flag) {
-       printf("  note name: %.5s,\tfrequency: %7.2f Hz,\tduration %2.4f s\n",
-               notedata[note_idx].name, notedata[note_idx].frequency, notedata[note_idx].duration);
-       print_flag = false;
-   }
+    if (print_flag) {
+        printf("  note name: %.5s,\tfrequency: %7.2f Hz,\tduration %2.4f s\n",
+            notedata[note_idx].name, notedata[note_idx].frequency, notedata[note_idx].duration);
+        print_flag = false;
+    }
 }
 
 char *str_trim(char *s)
@@ -359,7 +365,6 @@ void quit_msg(char *s)
     exit(EXIT_FAILURE);
 }
 
-#define usage_msg "usage: rattle [--sine | --square | --sawtooth | --triangle] 'ring_tone_text_string'"
 
 void    parse(int argc, char **argv)
 {
@@ -459,7 +464,7 @@ int main(int argc, char **argv)
     want.freq = sampling_frequency;
     want.format = AUDIO_S16;
     want.channels = 2;
-    want.samples = 1;
+    want.samples = num_samples;
     want.callback = MyAudioCallback;
 
     dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
@@ -473,6 +478,7 @@ int main(int argc, char **argv)
     if (have.format != want.format) {
         SDL_Log("We didn't get Signed16 audio format.");
     }
+
     SDL_PauseAudioDevice(dev, 0);
     while (!done)
         SDL_Delay(1);
