@@ -193,41 +193,41 @@ static int  beats = 100;
 static bool is_parse_error = false;
 static bool done = false;
 
-short (*wave_gen)(double time, double freq, double amp);
+int16_t (*wave_gen)(double time, double freq, double amp);
 
 
 /* https://www.youtube.com/watch?v=5xd9BMxoXqo */
-short SineWave(double time, double freq, double amp) {
-    short result;
+int16_t SineWave(double time, double freq, double amp) {
+    int16_t result;
     double tpc = sampling_frequency / freq; // ticks per cycle
     double cycles = time / tpc;
     double rad = M_PI * 2 * cycles;
-    short amplitude = 32767 * amp;
+    int16_t amplitude = INT16_MAX * amp;
     result = amplitude * sin(rad);
     return result;
 }
 
-short SquareWave(double time, double freq, double amp) {
-    short result = 0;
+int16_t SquareWave(double time, double freq, double amp) {
+    int16_t result = 0;
     int tpc = sampling_frequency / freq; // ticks per cycle
     int cyclepart = (int)time % tpc;
     int halfcycle = tpc / 2;
-    short amplitude = 32767 * amp;
+    int16_t amplitude = INT16_MAX * amp;
     if (cyclepart < halfcycle) {
         result = amplitude;
     }
     return result;
 }
 
-short SawtoothWave(double time, double freq, double amp) {
+int16_t SawtoothWave(double time, double freq, double amp) {
     int tpc = sampling_frequency / freq; // ticks per cycle
     double cyclepart = fmod(time, tpc);
     double percent = cyclepart / tpc;
-    short result = 32767 * amp * percent;
+    int16_t result = INT16_MAX * amp * percent;
     return result;
 }
 
-short TriangleWave(double time, double freq, double amp) {
+int16_t TriangleWave(double time, double freq, double amp) {
     int tpc = sampling_frequency / freq; // ticks per cycle
     double cyclepart = fmod(time, tpc);
     double halfcycle = tpc / 2;
@@ -235,7 +235,7 @@ short TriangleWave(double time, double freq, double amp) {
     percent = cyclepart / halfcycle;
     if (cyclepart >= halfcycle)
         percent = 2.0 - percent;
-    short result = 32767 * amp * percent;
+    int16_t result = INT16_MAX * amp * percent;
     return result;
 }
 
@@ -262,8 +262,8 @@ void MyAudioCallback(void *userdata, Uint8 *stream, int len)
         return ;
 
    data = wave_gen(time_idx++, notedata[note_idx].frequency, 1.0);
-   stream[0] = data & 0xff;
-   stream[1] = (data >> 8) & 0xff;
+   *(int16_t *)&stream[0] = data;
+   *(int16_t *)&stream[2] = data;
 
    if (print_flag) {
        printf("  note name: %.5s,\tfrequency: %7.2f Hz,\tduration %2.4f s\n",
@@ -359,7 +359,7 @@ void quit_msg(char *s)
     exit(EXIT_FAILURE);
 }
 
-#define usage_msg "usage: rattle [--sine] [--square] 'ring_tone_text_string'"
+#define usage_msg "usage: rattle [--sine | --square | --sawtooth | --triangle] 'ring_tone_text_string'"
 
 void    parse(int argc, char **argv)
 {
@@ -458,7 +458,7 @@ int main(int argc, char **argv)
     SDL_memset(&want, 0, sizeof(want));
     want.freq = sampling_frequency;
     want.format = AUDIO_S16;
-    want.channels = 1;
+    want.channels = 2;
     want.samples = 1;
     want.callback = MyAudioCallback;
 
