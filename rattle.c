@@ -176,7 +176,7 @@ t_note  notes[] = {
 
 #define num_notes 153
 
-#define num_samples 4096
+#define num_samples 32
 #define sampling_frequency  44100
 
 #define usage_msg "usage: rattle [--sine | --square | --sawtooth | --triangle] 'ring_tone_text_string'"
