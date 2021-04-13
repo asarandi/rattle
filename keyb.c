@@ -331,27 +331,27 @@ double  get_note_freq(char *note)
 
 void MyAudioCallback(void *userdata, Uint8 *stream, int len)
 {
-    int16_t data;
-    int32_t calc;
+    uint16_t data, i, j, k;
     double  freq;
 
     (void)userdata;
 
     memset(stream, 0, len);
 
-    for (uint32_t i = 0; i < num_keys; i++)
+    for (i = k = 0; i < num_keys; i++)
+        k += keys[i].is_pressed;
+
+    for (i = 0; i < num_keys; i++)
     {
         if (!keys[i].is_pressed)
-            continue ;
+            continue;
 
         freq = get_note_freq(keys[i].note);
-        for (uint32_t j = 0; j < num_samples; j++)
+        for (j = 0; j < num_samples; j++)
         {
-            data = wave_gen(keys[i].ticks++, freq, 1.0);
-            calc = (*(int16_t *)&stream[j * 4] + data) >> 1;
-            data = calc;
-            *(int16_t *)&stream[j * 4] = data;
-            *(int16_t *)&stream[j * 4 + 2] = data;
+            data = wave_gen(keys[i].ticks++, freq, 1.0 / (double)k);
+            *(int16_t *)&stream[j * 4] += data;
+            *(int16_t *)&stream[j * 4 + 2] += data;
         }
     }
 }
