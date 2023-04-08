@@ -25,11 +25,12 @@ char *get_index_name(int index);
 double get_index_frequency(int index);
 
 /*
-** in: beats per minute, note type
+** in: beats per minute, note type, is_dotted
 ** out: duration is seconds
 ** notes: handles 1, 2, 4, 8, 16, 32 types
+** if note is dotted, then add extra half duration
 ** returns -1.0 for other note types
 */
-double get_note_duration(int bpm, int note_type);
+double get_note_duration(int bpm, int note_type, int is_dotted);
 
 #endif

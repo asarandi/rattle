@@ -4,35 +4,39 @@
 /* clang-format off */
 struct {
     char *name;
+    int len;
     int index;
 } note_indices[] = {
-    { "a", 0},
-    {"a#", 1},
-    {"bb", 1},
-    { "b", 2},
-    { "c", 3},
-    {"c#", 4},
-    {"db", 4},
-    { "d", 5},
-    {"d#", 6},
-    {"eb", 6},
-    { "e", 7},
-    { "f", 8},
-    {"f#", 9},
-    {"gb", 9},
-    { "g", 10},
-    {"g#", 11},
-    {"ab", 11},
+    {"a#", 2, 10},
+    {"bb", 2, 10},
+    {"hb", 2, 10},
+    {"c#", 2,  1},
+    {"db", 2,  1},
+    {"d#", 2,  3},
+    {"eb", 2,  3},
+    {"f#", 2,  6},
+    {"gb", 2,  6},
+    {"g#", 2,  8},
+    {"ab", 2,  8},
+    { "a", 1,  9},
+    { "b", 1, 11},
+    { "h", 1, 11},
+    { "c", 1,  0},
+    { "d", 1,  2},
+    { "e", 1,  4},
+    { "f", 1,  5},
+    { "g", 1,  7},
 };
 /* clang-format on */
 
-#define NUM_NOTE_INDICES 17
+#define NUM_NOTE_INDICES 19
 
-int get_note_index(char *note_name) {
+/* match two character notes before single character notes */
+int get_note_index(char *s) {
     int i;
 
     for (i = 0; i < NUM_NOTE_INDICES; i++) {
-        if (!strcmp(note_name, note_indices[i].name)) {
+        if (!strncmp(s, note_indices[i].name, note_indices[i].len)) {
             return note_indices[i].index;
         }
     }
@@ -51,22 +55,25 @@ char *get_index_name(int index) {
 }
 
 /*
-** index 0 = A0 = 27.5 Hz
+** index 0 = C0 = 16.35160 Hz
 */
 double get_index_frequency(int index) {
-    return pow(2.0, (double)index / 12.0) * 27.5;
+    return pow(2.0, (double)index / 12.0) * 16.35160;
 }
 
 /* clang-format off */
-double get_note_duration(int bpm, int note_type) {
-    double spb = 60.0 / (double)bpm;
+double get_note_duration(int bpm, int note_type, int is_dotted) {
+    double spb;
+
+    spb = 60.0 / (double)bpm;
+    spb *= is_dotted ? 1.5 : 1.0;
     switch (note_type) {
         case  1: return spb * 4.0;  // whole
         case  2: return spb * 2.0;  // half
         case  4: return spb;        // quarter
-        case  8: return spb / 2.0;  // eighth
-        case 16: return spb / 4.0;  // sixteenth
-        case 32: return spb / 8.0;  // thirty-second
+        case  8: return spb * 0.5;  // eighth
+        case 16: return spb * 0.25; // sixteenth
+        case 32: return spb * 0.125;// thirty-second
     }
     return -1.0;
 }
