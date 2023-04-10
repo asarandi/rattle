@@ -55,10 +55,10 @@ char *get_index_name(int index) {
 }
 
 /*
-** index 0 = C0 = 16.35160 Hz
+** index 0 = C0 = 16.3516 Hz
 */
 double get_index_frequency(int index) {
-    return pow(2.0, (double)index / 12.0) * 16.35160;
+    return pow(2.0, (double)index / 12.0) * 16.3516;
 }
 
 /* clang-format off */
@@ -71,9 +71,9 @@ double get_note_duration(int bpm, int note_type, int is_dotted) {
         case  1: return spb * 4.0;  // whole
         case  2: return spb * 2.0;  // half
         case  4: return spb;        // quarter
-        case  8: return spb * 0.5;  // eighth
-        case 16: return spb * 0.25; // sixteenth
-        case 32: return spb * 0.125;// thirty-second
+        case  8: return spb / 2.0;  // eighth
+        case 16: return spb / 4.0;  // sixteenth
+        case 32: return spb / 8.0;  // thirty-second
     }
     return -1.0;
 }
