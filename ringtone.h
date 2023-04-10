@@ -12,20 +12,12 @@ struct note {
     double frequency;
     double steps;
 
-    uint32_t mpos;
-
     uint32_t dur;
     uint32_t pos;
 };
 
 struct ringtone {
     int16_t (*wave)(double, uint32_t);
-    int16_t last_sample;
-
-    double last_volume;
-    double last_steps;
-    uint32_t last_mpos;
-
     int sfreq;
 
     char *name; // free

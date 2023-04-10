@@ -49,6 +49,10 @@ static char *parse_note(char *s, struct ringtone *o, struct note *note) {
     };
 
     note->raw = s;
+    i = strlen(s);
+    if (i > 1 && isdigit(s[i - 1]) && isdot(s[i - 2]))
+        s[i - 2] = s[i - 1], s[i - 1] = '.';
+
     for (i = 0; i < 4; i++) {
         *(items[i].buf) = j = 0;
         while (s[j] && items[i].f(s[j]) && j < 3) {

@@ -6,64 +6,44 @@
 #include <time.h>
 
 #define SFREQ 44100
+#define FADE 2.0
 
-void adjust_next_note(struct ringtone *o) {
-    struct note *n, *m;
-    int i;
+int16_t next_sample(struct ringtone *o) {
+    struct note *n;
+    int16_t s;
+    double v;
 
-    i = o->num_played;
-    if (o->num_notes - 1 <= i)
-        return;
-    n = &(o->notes[i]);
-    m = &(o->notes[i + 1]);
-    if (n->steps > 0.0 && m->steps > 0.0) {
-        m->mpos = calc_pos_b(n->steps, n->mpos, m->steps);
+    if (o->num_played == o->num_notes)
+        return 0;
+
+    n = &(o->notes[o->num_played]);
+
+    if (n->steps == 0.0) {
+        o->num_played += (++(n->pos) == n->dur);
+        return 0;
     }
+
+    s = o->wave(n->steps, n->pos);
+
+    if (n->pos < (n->steps * FADE))
+        s *= (double)n->pos / (n->steps * FADE);
+
+    v = (double)(n->dur - n->pos);
+    if (v < (n->steps * FADE))
+        s *= v / (n->steps * FADE);
+
+    o->num_played += (++(n->pos) == n->dur);
+    return s;
 }
 
 void audio_callback(void *userdata, Uint8 *stream, int len) {
     int16_t *ptr;
-    struct ringtone *o;
-    struct note *n;
-    int i;
 
-    o = (struct ringtone *)userdata;
     ptr = (int16_t *)stream;
-
-    i = 0;
-    while ((i < len) && (o->num_played < o->num_notes)) {
-        n = &(o->notes[o->num_played]);
-
-        if (n->pos == 0) {
-            fprintf(stdout, "%s\n", n->raw);
-        }
-
-        while ((i < len) && (n->pos < n->dur)) {
-            if (n->frequency > 0.0) {
-                o->last_sample = o->wave(n->steps, n->mpos);
-                n->mpos = (n->mpos + 1) % (uint32_t)n->steps;
-                o->last_steps = n->steps;
-                o->last_mpos = n->mpos;
-                o->last_volume = 1.0;
-            } else {
-                if (o->last_volume > 0.0)
-                    o->last_volume -= 0.02;
-
-                o->last_sample = o->wave(o->last_steps, o->last_mpos);
-                o->last_sample *= o->last_volume;
-                o->last_mpos = (o->last_mpos + 1) % (uint32_t)o->last_steps;
-            }
-            *ptr++ = o->last_sample;
-            n->pos = n->pos + 1;
-            i = i + 2;
-        }
-
-        if (n->pos == n->dur) {
-            adjust_next_note(o);
-            o->num_played++;
-        }
+    while (len) {
+        *ptr++ = next_sample((struct ringtone *)userdata);
+        len -= 2;
     }
-    (void)memset(stream + i, 0, len - i);
 }
 
 int main(int argc, char *argv[]) {
