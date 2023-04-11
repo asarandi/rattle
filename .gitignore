@@ -1,2 +1,8 @@
 rattle
 keyb
+main
+*.sw*
+*.o
+._*
+.DS_*
+extras

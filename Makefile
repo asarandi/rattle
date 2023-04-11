@@ -1,9 +1,18 @@
-CFLAGS  += -O1 -Wall -Werror -Wextra
-CFLAGS  += $(shell sdl2-config --cflags)
-LDFLAGS += $(shell sdl2-config --static-libs) -lm
+CFLAGS += -g -Wall -Werror -Wextra
+CFLAGS += $(shell sdl2-config --cflags)
+LDFLAGS += -g -lm $(shell sdl2-config --libs)
 
-rattle: rattle.c
-	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+SRC += main.c mystrings.c notes.c parse.c samples.c
+OBJ += $(SRC:.c=.o)
+
+rattle: $(OBJ)
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 keyb: keyb.c
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+
+format:
+	clang-format -i *.c *.h
+
+fclean:
+	$(RM) $(OBJ) main
