@@ -8,6 +8,9 @@ struct note {
     int octave;
     int index;
 
+    int type;
+    int dotted;
+
     double duration;
     double frequency;
     double steps;
@@ -26,6 +29,10 @@ struct ringtone {
     int duration;
     int octave;
     int bpm;
+
+    int verbose;
+    int nofade;
+    int transpose;
 
     volatile int num_notes;
     volatile int num_played;

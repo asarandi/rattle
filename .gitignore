@@ -3,3 +3,4 @@ main
 *.o
 ._*
 .DS_*
+extras

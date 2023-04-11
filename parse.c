@@ -2,6 +2,7 @@
 ** https://www.mobilefish.com/tutorials/rtttl/rtttl_quickguide_specification.html
 */
 
+#include "errors.h"
 #include "mystrings.h"
 #include "notes.h"
 #include "ringtone.h"
@@ -10,19 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-/* clang-format off */
-#define ERR_NUMCOLONS "ringtone: expecting 2 colons as delimiters - name:settings:notes"
-#define ERR_NUMCOMMAS "settings: expecting 2 commas as delimiters - d=4,o=6,b=112"
-#define ERR_BADKVSETT "settings: bad key value pair"
-#define ERR_NOTEPARSE "note parse"
-#define ERR_NOTEDOT   "note dot"
-#define ERR_NOTEDUR   "note duration"
-#define ERR_NOTEOCT   "note octave"
-#define ERR_NOTENAM   "note name"
-#define ERR_NONOTES   "notes: empty"
-#define ERR_MALLOC    "malloc() failed"
-/* clang-format on */
 
 static int count_notes(char *s) {
     if (!strlen(s))
@@ -74,6 +62,7 @@ static char *parse_note(char *s, struct ringtone *o, struct note *note) {
     /* duration */
     s = items[0].buf;
     i = (*s == '\0') ? o->duration : atoi(s);
+    note->type = i, note->dotted = j;
     note->duration = get_note_duration(o->bpm, i, j);
     if (note->duration == -1.0)
         return ERR_NOTEDUR;
@@ -89,15 +78,17 @@ static char *parse_note(char *s, struct ringtone *o, struct note *note) {
 
     /* name/index */
     s = items[1].buf;
-    i = *s == 'p' && *(s + 1) == '\0';
     note->index = get_note_index(s);
 
     /* freq/pause */
-    note->frequency = get_index_frequency(note->octave * 12 + note->index);
     if (note->index == -1) {
-        if (!i)
+        if (!(*s == 'p' && *(s + 1) == '\0'))
             return ERR_NOTENAM;
         note->steps = note->frequency = 0.0;
+    } else {
+        i = note->octave * 12 + note->index + o->transpose;
+        note->octave = i / 12, note->index = i % 12;
+        note->frequency = get_index_frequency(i);
     }
 
     if (note->frequency > 0.0) {
