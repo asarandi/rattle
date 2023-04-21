@@ -15,4 +15,7 @@ format:
 	clang-format -i *.c *.h
 
 fclean:
-	$(RM) $(OBJ) main
+	rm -f $(OBJ) rattle keyb
+
+test: rattle
+	./rattle `grep Mozart samples.txt`

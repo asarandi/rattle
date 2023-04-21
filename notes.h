@@ -5,7 +5,7 @@
 ** in: note name
 ** out: note index in range 0..11
 ** returns -1 if name not found
-** example: in: "c#", out: 4
+** example: in: "c#", out: 1
 */
 int get_note_index(char *note_name);
 
@@ -13,7 +13,8 @@ int get_note_index(char *note_name);
 ** in: index
 ** out: note name
 ** returns NULL if index not found
-** example: in: 6, out: "d#"
+** example: in: 3, out: "d#"
+** nb: sharps ordered before flats
 */
 char *get_index_name(int index);
 

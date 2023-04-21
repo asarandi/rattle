@@ -67,7 +67,7 @@ static char *parse_note(char *s, struct ringtone *o, struct note *note) {
     if (note->duration == -1.0)
         return ERR_NOTEDUR;
 
-    note->dur = (uint32_t)(note->duration * (double)o->sfreq);
+    note->dur = (uint32_t)(note->duration * (double)SFREQ);
 
     /* octave */
     s = items[2].buf;
@@ -92,7 +92,7 @@ static char *parse_note(char *s, struct ringtone *o, struct note *note) {
     }
 
     if (note->frequency > 0.0) {
-        note->steps = (double)o->sfreq / note->frequency;
+        note->steps = (double)SFREQ / note->frequency;
     }
 
     return NULL;
@@ -157,6 +157,7 @@ static char *parse_settings(char *s, struct ringtone *o) {
     return error;
 }
 
+/* returns NULL on success, else error string */
 char *parse_ringtone(char *s, struct ringtone *o) {
     char *settings, *notes;
 

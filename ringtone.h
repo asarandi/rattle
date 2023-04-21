@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define SFREQ 44100
+#define FADE 2.0
+
 struct note {
     char *raw;
     int octave;
@@ -21,7 +24,6 @@ struct note {
 
 struct ringtone {
     int16_t (*wave)(double, uint32_t);
-    int sfreq;
 
     char *name; // free
     char *copy; // free

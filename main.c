@@ -7,8 +7,9 @@
 #include <time.h>
 #include <unistd.h>
 
-#define SFREQ 44100
-#define FADE 2.0
+/* globals */
+SDL_AudioDeviceID dev;
+struct ringtone *ringtone;
 
 void print_details(struct ringtone *o) {
     struct note *n;
@@ -69,96 +70,108 @@ int16_t next_sample(struct ringtone *o) {
 }
 
 void audio_callback(void *userdata, Uint8 *stream, int len) {
+    (void)userdata;
     int16_t *ptr;
 
     ptr = (int16_t *)stream;
     while (len) {
-        (void)print_details((struct ringtone *)userdata);
-        *ptr++ = next_sample((struct ringtone *)userdata);
+        (void)print_details(ringtone);
+        *ptr++ = next_sample(ringtone);
         len -= 2;
     }
 }
 
-int main(int argc, char *argv[]) {
-    SDL_AudioDeviceID dev;
-    SDL_AudioSpec desired, obtained;
-    SDL_Event event;
-    struct ringtone *ringtone;
-    volatile int done;
-    char *s;
-    int opt, verbose, nofade, transpose;
-    extern int optind;
-    int16_t (*wave)(double, uint32_t);
+void show_usage(char *p) {
+    (void)fprintf(stderr, "usage: %s [-0|-1|-2|-3] [-v] [-f] [-t n] song\n", p);
+    (void)fprintf(stderr, "    -0    sine\n");
+    (void)fprintf(stderr, "    -1    square\n");
+    (void)fprintf(stderr, "    -2    triangle\n");
+    (void)fprintf(stderr, "    -3    sawtooth\n");
+    (void)fprintf(stderr, "    -v    verbose\n");
+    (void)fprintf(stderr, "    -f    disable fade\n");
+    (void)fprintf(stderr, "    -t n  transpose n steps\n");
+}
 
-    wave = &sine;
-    verbose = nofade = transpose = 0;
-
-    while ((opt = getopt(argc, argv, "0123vft:")) != -1) {
-        switch (opt) {
-        case '0':
-            wave = &sine;
-            break;
-        case '1':
-            wave = &square;
-            break;
-        case '2':
-            wave = &triangle;
-            break;
-        case '3':
-            wave = &sawtooth;
-            break;
-        case 'v':
-            verbose = 1;
-            break;
-        case 'f':
-            nofade = 1;
-            break;
-        case 't':
-            transpose = atoi(optarg);
-            break;
-        default: /* '?' */
-            fprintf(stderr, "usage: %s [-0|-1|-2|-3] [-f] [-t n] song\n",
-                    argv[0]);
-            fprintf(stderr, "   -0    sine\n");
-            fprintf(stderr, "   -1    square\n");
-            fprintf(stderr, "   -2    triangle\n");
-            fprintf(stderr, "   -3    sawtooth\n");
-            fprintf(stderr, "   -v    verbose\n");
-            fprintf(stderr, "   -f    disable fade\n");
-            fprintf(stderr, "   -t n  transpose n steps\n");
-            return 1;
-        }
+void cleanup(void) {
+    if (dev) {
+        (void)SDL_CloseAudioDevice(dev);
+        dev = 0;
     }
 
-    if (optind >= argc) {
-        fprintf(stderr, "expecting rtttl song after options\n");
-        return 1;
+    (void)SDL_Quit();
+
+    if (ringtone) {
+        (void)free_ringtone_data(ringtone);
+        (void)free(ringtone);
+        ringtone = NULL;
+    }
+}
+
+void init_or_quit(int argc, char *argv[]) {
+    extern int optind;
+    int opt;
+    char *s;
+
+    if (atexit(&cleanup)) {
+        (void)fprintf(stderr, "%s\n", ERR_ATEXIT);
+        (void)exit(1);
     }
 
     ringtone = calloc(1, sizeof(struct ringtone));
     if (!ringtone) {
         (void)fprintf(stderr, "%s\n", ERR_MALLOC);
-        return 1;
+        (void)exit(1);
+    }
+    ringtone->wave = &sine;
+
+    while ((opt = getopt(argc, argv, "0123vft:")) != -1) {
+        switch (opt) {
+        case '0':
+            ringtone->wave = &sine;
+            break;
+        case '1':
+            ringtone->wave = &square;
+            break;
+        case '2':
+            ringtone->wave = &triangle;
+            break;
+        case '3':
+            ringtone->wave = &sawtooth;
+            break;
+        case 'v':
+            ringtone->verbose = 1;
+            break;
+        case 'f':
+            ringtone->nofade = 1;
+            break;
+        case 't':
+            ringtone->transpose = atoi(optarg);
+            break;
+        default: /* '?' */
+            (void)show_usage(argv[0]);
+            (void)exit(1);
+        }
     }
 
-    ringtone->sfreq = SFREQ;
-    ringtone->wave = wave;
-    ringtone->verbose = verbose;
-    ringtone->nofade = nofade;
-    ringtone->transpose = transpose;
+    if (optind >= argc) {
+        (void)show_usage(argv[0]);
+        (void)exit(1);
+    }
 
     if ((s = parse_ringtone(argv[optind], ringtone))) {
-        (void)free_ringtone_data(ringtone);
-        (void)free(ringtone);
         (void)fprintf(stderr, "%s\n", s);
-        return 1;
+        (void)exit(1);
     }
+}
 
-    (void)srand(time(NULL));
+int main(int argc, char *argv[]) {
+    SDL_AudioSpec desired, obtained;
+    SDL_Event event;
+    volatile int done;
+
+    (void)init_or_quit(argc, argv);
 
     if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-        (void)free_ringtone_data(ringtone);
-        (void)free(ringtone);
         (void)SDL_Log("%s", SDL_GetError());
         return 1;
     }
@@ -172,23 +185,15 @@ int main(int argc, char *argv[]) {
     desired.samples = 4096;
     desired.size = 4096 * 2 * 1;
     desired.callback = &audio_callback;
-    desired.userdata = ringtone;
 
     dev = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
     if (!dev) {
-        (void)free_ringtone_data(ringtone);
-        (void)free(ringtone);
         (void)SDL_Log("%s", SDL_GetError());
-        (void)SDL_Quit();
         return 1;
     }
 
     if (SDL_memcmp(&desired, &obtained, sizeof(SDL_AudioSpec)) != 0) {
-        (void)free_ringtone_data(ringtone);
-        (void)free(ringtone);
         (void)SDL_Log("did not get desired audio spec");
-        (void)SDL_CloseAudioDevice(dev);
-        (void)SDL_Quit();
         return 1;
     }
 
@@ -203,10 +208,5 @@ int main(int argc, char *argv[]) {
         (void)SDL_Delay(20);
     }
 
-    (void)SDL_CloseAudioDevice(dev);
-    (void)SDL_Quit();
-
-    (void)free_ringtone_data(ringtone);
-    (void)free(ringtone);
     return 0;
 }

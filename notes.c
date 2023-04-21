@@ -1,6 +1,9 @@
 #include <math.h>
 #include <string.h>
 
+/* match two character notes before single character notes */
+/* nb: preference order, sharps before flats */
+
 /* clang-format off */
 struct {
     char *name;
@@ -31,7 +34,6 @@ struct {
 
 #define NUM_NOTE_INDICES 19
 
-/* match two character notes before single character notes */
 int get_note_index(char *s) {
     int i;
 

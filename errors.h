@@ -12,6 +12,7 @@
 #define ERR_NOTENAM   "note name"
 #define ERR_NONOTES   "notes: empty"
 #define ERR_MALLOC    "malloc() failed"
+#define ERR_ATEXIT    "atexit() failed"
 /* clang-format on */
 
 #endif
