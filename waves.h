@@ -1,5 +1,5 @@
-#ifndef SAMPLES_H
-#define SAMPLES_H
+#ifndef WAVES_H
+#define WAVES_H
 
 #include <stdint.h>
 

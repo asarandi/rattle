@@ -53,7 +53,7 @@ defaults: duration = 4, octave = 5, beats = 225
   note name: 2g5,    frequency:  783.99 Hz, duration: 0.5333 s
 ```
 
-* see `samples.txt` for rtttl tunes
+* see `tunes.txt` for rtttl songs
 
 #
 

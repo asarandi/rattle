@@ -1,7 +1,7 @@
 #include "errors.h"
 #include "notes.h"
 #include "ringtone.h"
-#include "samples.h"
+#include "waves.h"
 #include <SDL.h>
 #include <stdint.h>
 #include <time.h>

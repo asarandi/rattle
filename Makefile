@@ -2,7 +2,7 @@ CFLAGS += -g -Wall -Werror -Wextra
 CFLAGS += $(shell sdl2-config --cflags)
 LDFLAGS += -g -lm $(shell sdl2-config --libs)
 
-SRC += main.c mystrings.c notes.c parse.c samples.c
+SRC += main.c mystrings.c notes.c parse.c waves.c
 OBJ += $(SRC:.c=.o)
 
 rattle: $(OBJ)
@@ -18,4 +18,4 @@ fclean:
 	rm -f $(OBJ) rattle keyb
 
 test: rattle
-	./rattle `grep Mozart samples.txt`
+	./rattle `grep Mozart tunes.txt`
