@@ -21,7 +21,7 @@ char *get_index_name(int index);
 /*
 ** in: index
 ** out: frequency
-** notes: index zero is A0 at 27.5 Hz
+** notes: index zero is C0 at 16.3516 Hz
 */
 double get_index_frequency(int index);
 

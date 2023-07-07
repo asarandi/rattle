@@ -2,7 +2,8 @@
 #include <string.h>
 
 /* match two character notes before single character notes */
-/* nb: preference order, sharps before flats */
+/* nb: particular array order, sharps come before flats */
+/* `get_index_name(1)` returns "c#" not "db" */
 
 /* clang-format off */
 struct {
