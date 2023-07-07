@@ -123,16 +123,8 @@ static char *parse_notes(char *s, struct ringtone *o) {
 }
 
 static char *parse_settings(char *s, struct ringtone *o) {
-    struct {
-        char *k;
-        int *v;
-    } items[] = {
-        {"d=", &(o->duration)},
-        {"o=", &(o->octave)},
-        {"b=", &(o->bpm)},
-    };
     char **arr, *error;
-    int i;
+    int i, n;
 
     if (count_chars(s, ',') != 2)
         return ERR_NUMCOMMAS;
@@ -141,18 +133,31 @@ static char *parse_settings(char *s, struct ringtone *o) {
         return ERR_MALLOC;
 
     error = NULL;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; !error && i < 3; ++i) {
+
         s = arr[i];
-        if (strncmp(items[i].k, s, 2)) {
+        if (!((strlen(s) > 2) && (*(s + 1) == '=') && (is_all_digits(s + 2)))) {
             error = ERR_BADKVSETT;
             break;
         }
-        if (!*(s + 2) || !is_all_digits(s + 2)) {
-            error = ERR_BADKVSETT;
+
+        n = atoi(s + 2);
+
+        switch (*s) {
+        case 'd':
+            o->duration = n;
             break;
+        case 'o':
+            o->octave = n;
+            break;
+        case 'b':
+            o->bpm = n;
+            break;
+        default:
+            error = ERR_BADKVSETT;
         }
-        *(items[i].v) = atoi(s + 2);
     }
+
     (void)free(arr);
     return error;
 }
