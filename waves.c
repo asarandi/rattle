@@ -44,5 +44,5 @@ int16_t sine(double steps, uint32_t pos) {
 
 int16_t square(double steps, uint32_t pos) {
     pos = pos % (uint32_t)steps;
-    return pos < steps / 2 ? -INT16_MAX : INT16_MAX;
+    return pos < steps / 2 ? INT16_MAX : -INT16_MAX;
 }

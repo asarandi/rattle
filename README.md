@@ -27,6 +27,11 @@ usage: ./rattle [-0|-1|-2|-3] [-v] [-f] [-t n] song
     -t n  transpose n steps
 ```
 
+### sound wave shapes -- sine, square, triangle, sawtooth
+
+![screenshot](images/audacity-sound-wave-shapes-sine-square-triangle-sawtooth.png)
+
+
 ### example:
 * command
 ```sh
