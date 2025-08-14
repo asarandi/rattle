@@ -25,8 +25,8 @@ struct note {
 struct ringtone {
     int16_t (*wave)(double, uint32_t);
 
-    char *name; // free
-    char *copy; // free
+    char *name; /* free */
+    char *copy; /* free */
 
     int duration;
     int octave;
@@ -39,7 +39,7 @@ struct ringtone {
     volatile int num_notes;
     volatile int num_played;
 
-    struct note *notes; // free
+    struct note *notes; /* free */
 };
 
 char *parse_ringtone(char *s, struct ringtone *o);

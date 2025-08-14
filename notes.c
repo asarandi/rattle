@@ -44,7 +44,7 @@ int get_note_index(char *s) {
         }
     }
     return -1;
-};
+}
 
 char *get_index_name(int index) {
     int i;
@@ -71,12 +71,12 @@ double get_note_duration(int bpm, int note_type, int is_dotted) {
     spb = 60.0 / (double)bpm;
     spb *= is_dotted ? 1.5 : 1.0;
     switch (note_type) {
-        case  1: return spb * 4.0;  // whole
-        case  2: return spb * 2.0;  // half
-        case  4: return spb;        // quarter
-        case  8: return spb / 2.0;  // eighth
-        case 16: return spb / 4.0;  // sixteenth
-        case 32: return spb / 8.0;  // thirty-second
+        case  1: return spb * 4.0;  /* whole */
+        case  2: return spb * 2.0;  /* half */
+        case  4: return spb;        /* quarter */
+        case  8: return spb / 2.0;  /* eighth */
+        case 16: return spb / 4.0;  /* sixteenth */
+        case 32: return spb / 8.0;  /* thirty-second */
     }
     return -1.0;
 }

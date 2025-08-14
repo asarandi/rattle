@@ -3,6 +3,7 @@
 #include "ringtone.h"
 #include "waves.h"
 #include <SDL.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
@@ -70,14 +71,13 @@ int16_t next_sample(struct ringtone *o) {
 }
 
 void audio_callback(void *userdata, Uint8 *stream, int len) {
-    (void)userdata;
     int16_t *ptr;
 
+    (void)userdata;
     ptr = (int16_t *)stream;
-    while (len) {
+    for (len = len >> 1; len > 0; --len) {
         (void)print_details(ringtone);
         *ptr++ = next_sample(ringtone);
-        len -= 2;
     }
 }
 
@@ -165,9 +165,9 @@ void init_or_quit(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-    SDL_AudioSpec desired, obtained;
+    SDL_AudioSpec want, have;
     SDL_Event event;
-    volatile int done;
+    volatile bool quit = false;
 
     (void)init_or_quit(argc, argv);
 
@@ -176,23 +176,23 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    (void)SDL_memset(&desired, 0, sizeof(SDL_AudioSpec));
-    (void)SDL_memset(&obtained, 0, sizeof(SDL_AudioSpec));
+    (void)SDL_memset(&want, 0, sizeof(SDL_AudioSpec));
+    (void)SDL_memset(&have, 0, sizeof(SDL_AudioSpec));
 
-    desired.freq = SFREQ;
-    desired.format = AUDIO_S16;
-    desired.channels = 1;
-    desired.samples = 4096;
-    desired.size = 4096 * 2 * 1;
-    desired.callback = &audio_callback;
+    want.freq = SFREQ;
+    want.format = AUDIO_S16;
+    want.channels = 1;
+    want.samples = 4096;
+    want.size = 4096 * 2 * 1;
+    want.callback = &audio_callback;
 
-    dev = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
+    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if (!dev) {
         (void)SDL_Log("%s", SDL_GetError());
         return 1;
     }
 
-    if (SDL_memcmp(&desired, &obtained, sizeof(SDL_AudioSpec)) != 0) {
+    if (SDL_memcmp(&want, &have, sizeof(SDL_AudioSpec))) {
         (void)SDL_Log("did not get desired audio spec");
         return 1;
     }
@@ -200,10 +200,10 @@ int main(int argc, char *argv[]) {
     /* unpause */
     (void)SDL_PauseAudioDevice(dev, 0);
 
-    for (done = 0; !done;) {
-        done = ringtone->num_played == ringtone->num_notes;
+    while (!quit) {
+        quit = ringtone->num_played == ringtone->num_notes;
         (void)SDL_PollEvent(&event);
-        done |= event.type == SDL_QUIT;
+        quit |= event.type == SDL_QUIT;
         /* millis */
         (void)SDL_Delay(20);
     }
