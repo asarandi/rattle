@@ -47,14 +47,7 @@ int get_note_index(char *s) {
 }
 
 char *get_index_name(int index) {
-    int i;
-
-    for (i = 0; i < NUM_NOTE_INDICES; i++) {
-        if (note_indices[i].index == index) {
-            return note_indices[i].name;
-        }
-    }
-    return NULL;
+    return (NUM_NOTE_INDICES <= index) ? NULL : note_indices[index].name;
 }
 
 /*
